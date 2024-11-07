@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <!-- Themify Icons -->
+    <link rel="stylesheet" href="css/themify-icons.css">
+    <!-- Main css -->
+    <link href="css/style.css" rel="stylesheet">
+    <title>Mentor-Mentee Connect</title>
+</head>
+<body>
+    <div class="skills-form">
+        <h2>Enter Your Skills</h2>
+        <form id="skills-form">
+            <label for="skills">Your Skills:</label>
+            <input type="text" id="skills" name="skills" placeholder="e.g., Python, Data Science">
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <!-- This is where the match result and the connect button will be shown -->
+    <div id="match-result"></div>
+
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Sample data: Mentor and mentee objects
+        const mentors = {
+            'John': ['Python', 'Data Science', 'Machine Learning'],
+            'Lisa': ['JavaScript', 'React', 'Frontend Development'],
+            'Mark': ['Java', 'Spring Boot', 'Backend Development']
+        };
+
+        // Function to create a hashmap based on skills
+        function createSkillMap(people) {
+            let skillMap = {};
+            for (let person in people) {
+                people[person].forEach(skill => {
+                    if (!skillMap[skill]) {
+                        skillMap[skill] = [];
+                    }
+                    skillMap[skill].push(person);
+                });
+            }
+            return skillMap;
+        }
+
+        // Create skill map for mentors
+        const mentorSkillMap = createSkillMap(mentors);
+
+        // Function to find the best match based on skills (collaborative filtering)
+        function findBestMatch(userSkills, skillMap) {
+            let scoreMap = {};
+            
+            // Assign a weight for every skill match
+            userSkills.forEach(skill => {
+                if (skillMap[skill]) {
+                    skillMap[skill].forEach(person => {
+                        if (!scoreMap[person]) {
+                            scoreMap[person] = 0;
+                        }
+                        scoreMap[person] += 1; // Increment the score for every skill match
+                    });
+                }
+            });
+
+            // Sort based on highest score (best match)
+            let sortedMatches = Object.keys(scoreMap).sort((a, b) => scoreMap[b] - scoreMap[a]);
+            return sortedMatches.length ? sortedMatches[0] : 'No match found';
+        }
+
+        // Event listener for form submission
+        $('#skills-form').on('submit', function(event) {
+            event.preventDefault();
+            const userSkills = $('#skills').val().split(', ');
+
+            // Find the best mentor match
+            const bestMentorMatch = findBestMatch(userSkills, mentorSkillMap);
+
+            // Display the result in the match-result div
+            if (bestMentorMatch !== 'No match found') {
+                $('#match-result').html(`
+                    <p>Best Mentor Match: <strong>${bestMentorMatch}</strong></p>
+                    <button id="connect-btn" class="btn btn-primary">Connect</button>
+                `);
+
+                // Add event listener to the Connect button to redirect to the chat room
+                $('#connect-btn').on('click', function() {
+                    window.location.href = `chat-room.html?mentor=${bestMentorMatch}`;
+                });
+            } else {
+                $('#match-result').html(`<p>No match found.</p>`);
+            }
+        });
+    </script>
+</body>
+</html>
